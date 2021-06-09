@@ -11,12 +11,21 @@ contains a common core that is extended depending on which other
 privilege levels are supported and other details of the hardware
 implementation.
 
-\section{Machine-Level CSRs}
+\hl{
+  本章描述了机器模式(M-mode)中可用的机器级操作，机器模式是RISC-V系统中的最高
+  特权模式。机器模式用于对硬件平台的低级访问，是在复位时进入的第一模式。机器模式
+  还可以用于实现那些在硬件中直接实现过于困难或昂贵的功能。RISC-V机器级别的ISA
+  包含一个公共的核心部分，可以根据支持的其他权限级别和硬件实现的其他细节进行扩展。
+}
+
+\section{Machine-Level CSRs ~\\ \hl{机器级CSRs}}
 
 In addition to the machine-level CSRs described in this section,
 M-mode code can access all CSRs at lower privilege levels.
 
-\subsection{Machine ISA Register {\tt misa}}
+
+
+\subsection{Machine ISA Register {\tt misa} ~\\ \hl{机器ISA寄存器{\tt misa}}}
 \label{sec:misa}
 
 The {\tt misa} CSR is a \warl\ read-write register
@@ -25,6 +34,12 @@ readable in any implementation, but a value of zero can be returned to
 indicate the {\tt misa} register has not been implemented, requiring
 that CPU capabilities be determined through a separate non-standard
 mechanism.
+
+\hl{
+  {\tt misa} CSR是一个读任意写合法（WARL）的读写寄存器，记录着硬件线程所支持的
+  指令集架构。在所有的实现中，该寄存器必须是可读的。返回值是0意味着{\tt misa}没有
+  实现，此时需要通过一个独立的非标准机制来确定CPU的能力。
+}
 
 \begin{figure*}[h!]
 {\footnotesize
@@ -54,6 +69,13 @@ XLEN in M-mode, {\em MXLEN}, is given by the setting of MXL, or has a
 fixed value if {\tt misa} is zero.  The MXL field is always set to the
 widest supported ISA variant at reset.
 
+\hl{
+  {\tt misa}寄存器的MXL(Machine XLEN)字段编码了原生基础整数指令集的宽度，如表~\ref{misabase}
+  所示。在支持多种基础指令集的实现中，MXL字段有可能是可写的。机器模式下有效的XLEN,{\em MXLEN},
+  是通过设置MXL给出的，或者在{\tt misa}为0时有固定值。当机器重置时，MXL字段总是被设置成
+  被最广泛地支持的ISA。
+}
+
 \begin{table*}[h!]
 \begin{center}
 \begin{tabular}{|r|r|}
@@ -75,6 +97,12 @@ nonzero, field MXL of that value always denotes the current MXLEN. If a write
 to {\tt misa} causes MXLEN to change, the position of MXL moves to the
 most-significant two bits of {\tt misa} at the new width.
 
+\hl{
+  {\tt misa} CSR的宽度是 MXLEN 比特。如果读出的{\tt misa}是非零值，MXL字段总是
+  代表了当前的MXLEN。如果写入{\tt misa}导致MXLEN发生改变，MXL字段的位置就会移动到
+  拥有新宽度的{\tt misa}的最高的两位。
+}
+
 \begin{commentary}
 The base width can be quickly ascertained using branches on the sign
 of the returned {\tt misa} value, and possibly a shift left by one and
@@ -88,6 +116,18 @@ at a time.  If zero after one shift, then the machine is RV32.  If
 zero after two shifts, then the machine is RV64, else RV128.
 \end{commentary}
 
+\begin{commentary}
+  \hl{
+    基础整数寄存器的宽度可以被快速确定，方法是通过判断{\tt misa}值的符号，或者需要先把
+    改值左移一位再判断符号。这种检查方法可以写成汇编代码，即使不知道机器的寄存器的宽度（XLEN）。
+    基础宽度的计算公式是}$\mbox{XLEN}=2^{\mbox{MXL+4}}$
+  
+    \indent \hl{如果{\tt misa}的值是 0 ，基础宽度还可以通过另一种方法来确定。通过把立即数4放在
+    一个寄存器中，并把该寄存器一次左移31位。如果左移一次后值是0 ，那么机器就是RV32的。如果
+    左移两次后值才变成0，那么机器是RV64的。如果还不为0 ，那么机器是RV128的。
+  }
+\end{commentary}
+
 The Extensions field encodes the presence of the standard extensions,
 with a single bit per letter of the alphabet (bit 0 encodes presence
 of extension ``A'' , bit 1 encodes presence of extension ``B'',
@@ -98,16 +138,39 @@ where the implementation allows the supported ISA to be modified.  At
 reset, the Extensions field shall contain the maximal set of supported
 extensions, and I shall be selected over E if both are available.
 
-When a standard extension is disabled by clearing its bit in {\tt misa}, the instructions and CSRs defined or modified by the extension revert to their defined or reserved behaviors as if the extension is not implemented.
+\hl{
+  Extensions 字段编码了支持哪些标准扩展，每一位代表字母表中的一个字母（比如第0比特位代表
+  “A”扩展，第1比特位代表“B”扩展，一直到第25比特位代表“Z”扩展）。“I”比特位用于表示
+  RV32I, RV64I, RV128I 基础指令集，“E”比特位用于表示RV32E。Extensions 字段是
+  WARL字段，在支持切换ISA的实现中这些比特是可写的。重置的时候，Extensions 字段
+  将包含所支持的最大指令集合，当I和E都可用时，重置会选择I。
+}
+
+When a standard extension is disabled by clearing its bit in {\tt misa}, the instructions 
+and CSRs defined or modified by the extension revert to their defined or 
+reserved behaviors as if the extension is not implemented.
+
+\hl{
+  当一个标准扩展在{\tt misa}寄存器中的相应的比特位被清除时，由该扩展定义或者修改的指令和
+  CSRs都会回到原来的或者默认的状态，就像这种扩展没有被实现一样。
+}
 
 The RV128I base ISA is not yet frozen, and while much of the remainder of this
 specification is expected to apply to RV128, this version of the document
 focuses only on RV32 and RV64.
 
+\hl{
+  RV128I基础指令集现在还没有冻结，虽然本规范大部分剩余部分预计将应用于RV128，但本文档在这个版本只关注于RV32和RV64。
+}
+
 The ``U'' and ``S'' bits will be set if there is support for user and
 supervisor modes respectively.
 
+\hl{"U"和"S"比特位用于支持用户模式和监管者模式}
+
 The ``X'' bit will be set if there are any non-standard extensions.
+
+\hl{当任意非标准扩展存在时，"X"比特位被置位。}
 
 \begin{table*}
 \begin{center}
@@ -115,37 +178,41 @@ The ``X'' bit will be set if there are any non-standard extensions.
 \hline
 Bit & Character  & Description \\
 \hline
-  0 & A & Atomic extension \\
+  0 & A & Atomic extension \hl{原子指令扩展}\\
   1 & B & {\em Tentatively reserved for Bit-Manipulation extension} \\
-  2 & C & Compressed extension \\
+    &   & \hl{暂定为比特操作扩展保留} \\
+  2 & C & Compressed extension \hl{压缩指令扩展}\\
   3 & D & Double-precision floating-point extension \\
   4 & E & RV32E base ISA \\
   5 & F & Single-precision floating-point extension \\
   6 & G & {\em Reserved} \\
-  7 & H & Hypervisor extension \\
+  7 & H & Hypervisor extension \hl{超级监管者扩展}\\
   8 & I & RV32I/64I/128I base ISA \\
   9 & J & {\em Tentatively reserved for Dynamically Translated Languages extension} \\
+    &   & \hl{暂定为动态翻译语言扩展保留} \\
  10 & K & {\em Reserved} \\
  11 & L & {\em Reserved} \\
  12 & M & Integer Multiply/Divide extension \\
- 13 & N & User-level interrupts supported \\
+ 13 & N & User-level interrupts supported \hl{用户级中断支持}\\
  14 & O & {\em Reserved} \\
  15 & P & {\em Tentatively reserved for Packed-SIMD extension} \\
  16 & Q & Quad-precision floating-point extension \\
  17 & R & {\em Reserved} \\
- 18 & S & Supervisor mode implemented \\
+ 18 & S & Supervisor mode implemented \hl{监管者模式实现}\\
  19 & T & {\em Reserved} \\
- 20 & U & User mode implemented \\
+ 20 & U & User mode implemented \hl{用户模式实现}\\
  21 & V & {\em Tentatively reserved for Vector extension} \\
+    &   & \hl{暂定向量扩展保留} \\
  22 & W & {\em Reserved} \\
- 23 & X & Non-standard extensions present \\
+ 23 & X & Non-standard extensions present \hl{存在非标准扩展}\\
  24 & Y & {\em Reserved} \\
  25 & Z & {\em Reserved} \\
 \hline
 \end{tabular}
 \end{center}
 \caption{Encoding of Extensions field in {\tt misa}.  All bits that are
-  reserved for future use must return zero when read.}
+  reserved for future use must return zero when read. ~\\ \hl{{\tt misa}寄存器 
+  Extensions字段的编码。所有为了未来的使用所保留的比特在被读取时必须返回0。}}
 \label{misaletters}
 \end{table*}
 
@@ -156,12 +223,24 @@ to machine-mode code.  More extensive information can be obtained in
 machine mode by probing other machine registers, and examining other
 ROM storage in the system as part of the boot process.
 
+\hl{
+  {\tt misa}寄存器通过机器模式下的编码的方式暴露了一部分基本的CPU特性集。作为 boot 过程的一部分，更多
+  详细的信息可以通过在机器模式下检测其他机器寄存器和系统中的只读存储器来获取。
+}
+
 We require that lower privilege levels execute environment calls
 instead of reading CPU registers to determine features available at
 each privilege level. This enables virtualization layers to alter the
 ISA observed at any level, and supports a much richer command
 interface without burdening hardware designs.
+
+\hl{
+  我们要求通过对低特权等级执行环境的调用而不是直接读取CPU寄存器来确定每一个特权等级可用的CPU特性。
+  这使得虚拟层可以改变任一层观察到的ISA，从而支持一个更加丰富的命令接口，而不需要加重硬件设计的负担。
+}
 \end{commentary}
+
+
 
 The ``E'' bit is read-only.  Unless {\tt misa} is hardwired to zero, the ``E''
 bit always reads as the complement of the ``I'' bit.  An implementation that
