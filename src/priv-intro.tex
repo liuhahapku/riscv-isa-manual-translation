@@ -5,10 +5,21 @@ covers all aspects of RISC-V systems beyond the unprivileged ISA,
 including privileged instructions as well as additional functionality
 required for running operating systems and attaching external devices.
 
+\hl{
+  本文档描述了RISC-V特权架构，覆盖了RISC-V体系除非特权指令集架构以外的所有方面，
+  包括特权指令集以及运行操作系统和连接外部设备所需要的其他功能。
+}
+
 \begin{commentary}
 Commentary on our design decisions is formatted as in this paragraph,
 and can be skipped if the reader is only interested in the
 specification itself.
+\end{commentary}
+
+\begin{commentary}
+  \hl{
+    关于我们设计的评论会穿插在段落中，如果读者只对规范本身感兴趣，可以跳过这些评论。
+  }
 \end{commentary}
 
 \begin{commentary}
@@ -24,10 +35,22 @@ expression, the text is written as if this was the only possible
 privileged architecture.
 \end{commentary}
 
-\section{RISC-V Privileged Software Stack Terminology}
+\begin{commentary}
+  \hl{
+    这里我们简要说明一下，本规范所描述的整个特权级架构的设计可以在不修改非特权
+    ISA的情况下，被另一套不同的特权级架构设计完全替代，甚至不需要修改ABI 。
+    另外，由于该特权规范被设计用于运行现有流行的操作系统，因此体现了传统
+    的基于不同层次划分的保护模型。其他的特权规范设计可以体现其他更灵活的保护
+    域模型。为了简单起见，本文档的写作风格表现得好像这是唯一可能的一种特权架构。
+  }
+\end{commentary}
+
+\section{RISC-V Privileged Software Stack Terminology ~\\  
+\hl{RiSC-V特权软件栈术语} }
 
 This section describes the terminology we use to describe components
-of the wide range of possible privileged software stacks for RISC-V.
+of the wide range of possible privileged software stacks for RISC-V. \\
+\hl{本节描述了我们用来描述RISC-V各种可能的特权软件栈组件的术语。}
 
 Figure~\ref{fig:privimps} shows some of the possible software stacks
 that can be supported by the RISC-V architecture.  The left-hand side
@@ -41,6 +64,15 @@ same ABI could be implemented natively on multiple different host OSs,
 or could be supported by a user-mode emulation environment running on
 a machine with a different native ISA.
 
+\hl{
+  图~\ref{fig:privimps}展示了一些可RISC-V架构支持的软件栈。最左边的图表示
+  一个简单系统，仅支持单个应用运行在一个应用执行环境（AEE）中。这个应用程序使用特定的
+  应用程序二进制接口（ABI）来编写和运行。这个ABI包括所支持的用户级ISA外加一组与AEE
+  交互的ABI调用。ABI对应用程序隐藏了AEE的细节，以便给AEE的实现留下更大的灵活性。
+  相同的ABI可以在多个不同的主机操作系统上本地实现，或者可以被一个用户态模拟环境所支持，
+  该环境运行在拥有不同原生ISA的机器上的。
+}
+
 \begin{figure}[th]
 \centering
 \includegraphics[width=\textwidth]{figs/privimps.pdf}
@@ -53,6 +85,13 @@ a machine with a different native ISA.
 Our graphical convention represents abstract interfaces using black
 boxes with white text, to separate them from concrete instances of
 components implementing the interfaces.
+\end{commentary}
+
+\begin{commentary}
+  \hl{
+    图片中我们约定使用带有白色文本的黑色方框表示抽象接口，以便将它们与实现接口的
+    组件的具体实例分开。
+  }
 \end{commentary}
 
 The middle configuration shows a conventional operating system (OS)
@@ -69,10 +108,27 @@ low-end hardware platform, or a hypervisor-provided virtual machine in
 a high-end server, or a thin translation layer over a host operating
 system in an architecture simulation environment.
 
+\hl{
+  中间的结构展示了一个传统的支持多应用和多线程的操作系统（OS）。每个应用通过ABI
+  与操作系统交互，操作系统提供了应用程序执行环境。正如应用程序通过ABI与AEE交互，
+  RISC-V操作系统通过监管者二进制接口（SBI）与监管者执行环境（SEE）进行交互。SBI
+  由用户级和监管者级ISA以及一组SBI函数调用组成。在所有的SEE实现中使用同一组SBI
+  允许一个OS的二进制映像跑在所有的SEE上。这个SEE可以是低端硬件平台上一个简单的
+  boot loader和BIOS风格的IO系统，也可以是高端服务器上超级监管者提供的虚拟机，还可以是
+  指令集架构模拟环境中一个主机操作系统提供的薄转换层。
+}
+
 \begin{commentary}
 Most supervisor-level ISA definitions do not separate the SBI from the
 execution environment and/or the hardware platform, complicating
 virtualization and bring-up of new hardware platforms.
+\end{commentary}
+
+\begin{commentary}
+  \hl{
+    大多数监管者级ISA规范没有把SBI从执行环境和/或硬件平台分离出来，这使得虚拟化
+    以及发展新的硬件平台变得复杂。
+  }
 \end{commentary}
 
 The rightmost configuration shows a virtual machine monitor
@@ -83,32 +139,57 @@ the hypervisor execution environment (HEE) using a hypervisor binary
 interface (HBI), to isolate the hypervisor from details of the
 hardware platform.
 
+\hl{
+  最右边的结构展示了一个虚拟机管理器结构，多个支持多线程的OS由单个超级监管者支持。每个OS通过
+  SBI与超级监管者交互，而超级监管者提供了监管者执行环境（SEE）。超级监管者与超级监管者
+  执行环境之间通过超级监管者二进制接口（HBI）进行交互，以此来对超级监管者屏蔽硬件
+  平台的细节。
+}
+
 \begin{commentary}
 The ABI, SBI, and HBI are still a work-in-progress, but we are now
 prioritizing support for Type-2 hypervisors where the SBI is provided
 recursively by an S-mode OS.
 \end{commentary}
 
+\begin{commentary}
+  \hl{
+    ABI,SBI和HBI还在发展过程中，现在我们优先支持了Type-2型超级监管者，
+  其中SBI由一个监管者模式的{OS}递归地提供。
+  }
+\end{commentary}
+
 Hardware implementations of the RISC-V ISA will generally require
 additional features beyond the privileged ISA to support the various
 execution environments (AEE, SEE, or HEE).
 
-\section{Privilege Levels}
+\hl{
+  RISC-V ISA的硬件实现通常需要特权ISA之外的其他特性来支持各种执行环境(AEE、SEE或HEE)。
+}
+
+\section{Privilege Levels \\ 
+\hl{特权等级}}
 
 At any time, a RISC-V hardware thread ({\em hart}) is running at some
 privilege level encoded as a mode in one or more CSRs (control and
 status registers).  Three RISC-V privilege levels are currently defined
 as shown in Table~\ref{privlevels}.
 
+\hl{
+  一个RISC-V硬件线程（{\em hart}）在任意时刻都运行在某个特权等级下，这个等级
+  被编码成一个或多个控制和状态寄存器CSR中的一种模式。如表~\ref{privlevels}所示，
+  RISC-V现在支持三个特权等级。
+}
+
 \begin{table*}[h!]
 \begin{center}
 \begin{tabular}{|c|c|c|c|}
   \hline
    Level & Encoding & Name      & Abbreviation \\ \hline  
-   0     & \tt 00   & User/Application & U     \\ 
-   1     & \tt 01   & Supervisor & S           \\ 
-   2     & \tt 10   & {\em Reserved} &            \\ 
-   3     & \tt 11   & Machine    & M           \\ 
+   0     & \tt 00   & User/Application \hl{用户级} & U     \\ 
+   1     & \tt 01   & Supervisor \hl{监管者级} & S           \\ 
+   2     & \tt 10   & {\em Reserved} \hl{保留}&            \\ 
+   3     & \tt 11   & Machine \hl{机器级}   & M           \\ 
   \hline
  \end{tabular}
 \end{center}
@@ -121,6 +202,11 @@ components of the software stack, and attempts to perform operations
 not permitted by the current privilege mode will cause an exception to
 be raised.  These exceptions will normally cause traps into an
 underlying execution environment.
+
+\hl{
+  特权等级存在的目的是在软件栈的不同成分之间提供保护，执行在当前特权模式下不被允许的
+  操作会抛出异常。这些异常通常会造成陷入更底层的执行环境。
+}
 
 \begin{commentary}
 In the description, we try to separate the privilege level for which
@@ -136,6 +222,18 @@ guest OS in user mode, all supervisor-level actions will be trapped
 and emulated by the SEE running in the higher-privilege level.
 \end{commentary}
 
+\begin{commentary}
+  \hl{
+    这里我们尝试将代码本身的特权模式和它运行在哪个特权模式下区分开来，虽然他们俩
+    通常是结合在一起的。举个例子，一个监管者级的操作系统能够以监管者模式运行在一个
+    拥有三种特权等级的系统上，也能通过一个经典虚拟机运行在用户模式下，而该虚拟机
+    运行在拥有两个或以上特权等级的系统上。在上述两种情况下，同一份监管者级操作系统
+    的二进制代码能够被编写成监管者级的SBI,因此可以使用监管者特权级别的指令和CSRs。
+    当以用户模式运行一个客户操作系统时，所有监管者级别的动作都会陷入并由运行在更高
+    特权等级的SEE模拟出来。
+  }
+\end{commentary}
+
 The machine level has the highest privileges and is the only mandatory
 privilege level for a RISC-V hardware platform.  Code run in
 machine-mode (M-mode) is usually inherently trusted, as it has
@@ -143,6 +241,13 @@ low-level access to the machine implementation.  M-mode can be used to
 manage secure execution environments on RISC-V.  User-mode (U-mode)
 and supervisor-mode (S-mode) are intended for conventional application
 and operating system usage respectively.
+
+\hl{
+  机器级是最高的特权等级，也是RISC-V硬件平台唯一必须实现的特权等级。运行在机器模式
+  （M-mode）的代码通常是默认合法的，因为它对机器的实现具有底层的访问资格。机器模式
+  可用于管理RISC-V上的安全执行环境。用户模式（U-mode）和监管者模式（S-Mode）
+  分别用于常规应用程序和操作系统的使用场景。
+}
 
 Each privilege level has a core set of privileged ISA extensions with optional
 extensions and variants.  For example, machine-mode supports an optional
@@ -154,18 +259,29 @@ Implementations might provide anywhere from 1 to 3 privilege modes
 trading off reduced isolation for lower implementation cost, as shown
 in Table~\ref{privcombs}.
 
+\hl{
+  每一种特权级别都有一组核心的特权指令集扩展以及可选的扩展和变体。比如，机器模式支持可选的
+  标准内存保护扩展。同样的，监管者模式可以被扩展为支持Type-2型超级监管者的运行，正如第~\ref{hypervisor}
+  章所描述的那样。\newline \newline
+  通过在低实现成本和低隔离性之间权衡，硬件平台的的具体实现可以提供从1到3级的特权模式，如
+  表~\ref{privcombs}所示。
+}
+
 \begin{table*}[h!]
 \begin{center}
 \begin{tabular}{|c|l|l|}
   \hline
    Number of levels &  Supported Modes & Intended Usage \\ \hline  
    1     & M          & Simple embedded systems \\ 
+        &           & \hl{简单嵌入式系统} \\ 
    2     & M, U       & Secure embedded systems \\ 
+   &           & \hl{安全嵌入式系统} \\ 
    3     & M, S, U    & Systems running Unix-like operating systems\\ 
+   &           & \hl{运行类Unix操作系统的系统} \\ 
   \hline
  \end{tabular}
 \end{center}
-\caption{Supported combinations of privilege modes.}
+\caption{Supported combinations of privilege modes. \hl{受到支持的特权模式组合}}
 \label{privcombs}
 \end{table*}
 
@@ -174,15 +290,33 @@ mode that has unfettered access to the whole machine.  The simplest
 RISC-V implementations may provide only M-mode, though this will
 provide no protection against incorrect or malicious application code.
 
+\hl{
+  所有的硬件实现都必须提供机器模式，因为这是唯一一个拥有对整个机器无限制的访问权限
+  的模式。最简单的RISC-V实现可能只提供机器模式，虽然这样无法提供针对不正确或恶意
+  应用程序代码的保护。
+}
+
 \begin{commentary}
   The lock feature of the optional PMP facility can provide some
   limited protection even with only M-mode implemented.
+\end{commentary}
+
+\begin{commentary}
+  \hl{
+    即使只实现了机器模式，可选的物理内存保护（PMP）设施的锁定特性也能提供一些有限的保护。
+  }
 \end{commentary}
 
 Many RISC-V implementations will also support at least user mode
 (U-mode) to protect the rest of the system from application code.
 Supervisor mode (S-mode) can be added to provide isolation between a
 supervisor-level operating system and the SEE.
+
+\hl{
+  许多RISC-V实现至少会提供用户模式（U-mode），来保护系统的其余部分不受应用程序
+  代码的影响。还可以添加监管者模式（S-mode），从而在监管者级别的操作系统与操作系统
+  执行环境（SEE）之间提供隔离。
+}
 
 A hart normally runs application code in U-mode until some trap (e.g.,
 a supervisor call or a timer interrupt) forces a switch to a trap
@@ -194,12 +328,27 @@ that remain at the same privilege level are termed {\em horizontal}
 traps.  The RISC-V privileged architecture provides flexible routing
 of traps to different privilege layers.
 
+\hl{
+  一个硬件线程（hart）通常在用户模式下运行应用，直到一些陷阱（比如监管者系统调用或者
+  时钟中断）强制它跳转到陷阱处理程序，该程序通常运行在更高的特权等级上。接着这个硬件
+  线程就会执行这个陷阱处理程序，并最终返回到产生陷阱的用户指令或该指令的下一条指令，
+  并恢复用户级的特权等级。能够提升特权等级的陷阱称为垂直陷阱,保持当前特权等级
+  的陷阱称为水平陷阱。RISC-V特权架构提供了到不同特权层的灵活的路径。
+}
+
 \begin{commentary}
 Horizontal traps can be implemented as vertical traps that
 return control to a horizontal trap handler in the less-privileged mode.
 \end{commentary}
 
-\section{Debug Mode}
+\begin{commentary}
+  \hl{
+    水平陷阱可以被实现为将控制权交还给更低特权等级的水平陷阱处理程序的垂直陷阱。
+  }
+\end{commentary}
+
+\section{Debug Mode \\
+\hl{调试模式}}
 
 Implementations may also include a debug mode to support off-chip
 debugging and/or manufacturing test.  Debug mode (D-mode) can be
@@ -208,3 +357,12 @@ M-mode. The separate debug specification proposal describes operation
 of a RISC-V hart in debug mode.  Debug mode reserves a few CSR
 addresses that are only accessible in D-mode, and may also reserve
 some portions of the physical address space on a platform.
+
+\hl{
+  硬件实现还有可能包含了调试模式，来支持片外调试和流片后的测试。
+  调试模式（D-mode）可以认为是一个额外的特权等级，拥有比机器模式更高的访问权限。
+  独立的调试规范方案描述了RISC-V核在调试模式下的操作。
+  调试模式单独保留了一些控制状态寄存在（CSR）的地址空间，
+  这些地址只能在调试模式下访问，
+  另外调试模式也可能保留了平台上的一部分物理地址空间。
+}

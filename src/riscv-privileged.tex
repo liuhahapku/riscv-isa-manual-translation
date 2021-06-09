@@ -5,33 +5,59 @@
 \documentclass[twoside,11pt]{book}
 
 % Fix copy/pasting of ligatures in Acrobat
-\input{glyphtounicode.tex}
-\pdfgentounicode=1 %
+%\input{glyphtounicode.tex}
+%\pdfgentounicode=1 %
 
 \input{preamble}
+\input{ChineseAndColorSupport}
 
 \newcommand{\privrev}{1.12-draft}
 \newcommand{\privmonthyear}{June 2019}
+
+\newcommand{\commentmonthyear}{2021 年 6 月}
+\newcommand{\commentor}{刘孝男}
 
 \setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{3}
 
 \begin{document}
 
-\title{\vspace{-0.7in}\Large {\bf The RISC-V Instruction Set Manual} \\
-  \large {\bf Volume II: Privileged Architecture} \\
-  Document Version \privrev
+\title{\vspace{-0.7in}\Large {\bf The RISC-V Instruction Set Manual\\ 
+\hl{RISC-V指令集手册} } \\
+  \large {\bf Volume II: Privileged Architecture\\
+  \hl{卷二：特权架构}} \\
+  Document Version \privrev \\
+  \hl{版本 \privrev}
   \vspace{-0.1in}}
 
 \author{Editors: Andrew Waterman$^{1}$, Krste Asanovi\'{c}$^{1,2}$, John Hauser \\
   $^{1}$SiFive Inc., \\
   $^{2}$CS Division, EECS Department, University of California, Berkeley \\
   {\tt andrew@sifive.com, krste@berkeley.edu, jh.riscv@jhauser.us} \\
-  \today
+  \privmonthyear \\
+  \cm{翻译与评注：\commentor} \\
+  \cm{邮箱：liuxiaonan@eswin.com} \\
+  \cm{时间： \commentmonthyear}
 }
 
 \date{} 
 \maketitle
+
+RISC-V 特权架构的实现与操作系统等系统软件密切相关。笔者在互联网上没有看到满意的
+RISC-V 特权架构相关中文资料，遂决定开始翻译并批注 RISC-V 特权架构手册，
+希望能给团队提供关于 RISC-V 硬件如何对 OS 及系统软件提供支持的清晰认识。
+该工作的成果开源后，也可作为 ESWIN 在 RISC-V 业界做出的一小点贡献。
+
+文中的翻译部分会用\hl{亮黄色}标出，评注部分会用\cm{绿色}标出。
+为节约时间，笔者只翻译和评注自认为比较重要和难懂的部分，有不足之处，待日后继续完善。\\ 
+   
+\huge{翻译与评注工作记录} \\
+\normalsize
+   \\ 
+   2021年6月7日\\
+  开始翻译与评注，完成了第一章 introdution 的翻译与评注。
+
+\newpage
 
 Contributors to all versions of the spec in alphabetical order (please contact
 editors to suggest corrections): Krste Asanovi\'{c}, Peter Ashenden, Rimas
@@ -65,7 +91,7 @@ Andrew Waterman and Krste Asanovi\'{c}, RISC-V Foundation, \privmonthyear.
 
 \frontmatter
 
-\input{priv-preface}
+%\input{priv-preface}
 
 {\hypersetup{linktoc=all,hidelinks}
 \tableofcontents
@@ -75,13 +101,13 @@ Andrew Waterman and Krste Asanovi\'{c}, RISC-V Foundation, \privmonthyear.
 
 \input{priv-intro}
 \input{priv-csrs}
-\input{machine}
-\input{supervisor}
-\input{hypervisor}
-\input{n}
-\input{priv-insns}
+%\input{machine}
+%\input{supervisor}
+%\input{hypervisor}
+%\input{n}
+%\input{priv-insns}
 
-\input{priv-history}
+%\input{priv-history}
 
 \bibliographystyle{plain}
 \bibliography{riscv-spec}
