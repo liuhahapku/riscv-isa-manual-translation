@@ -5,18 +5,24 @@
 \documentclass[twoside,11pt]{book}
 
 % Fix copy/pasting of ligatures in Acrobat
-\input{glyphtounicode.tex}
-\pdfgentounicode=1 %
+%\input{glyphtounicode.tex}
+%\pdfgentounicode=1 %
 
 \input{preamble}
+\input{ChineseAndColorSupport}
 
 \newcommand{\specrev}{\mbox{20191214-{\em draft}}}
 \newcommand{\specmonthyear}{\mbox{December 2019}}
 
+\newcommand{\commentmonthyear}{2021 年 6 月}
+\newcommand{\commentor}{刘孝男}
+
 \begin{document}
 
-\title{\vspace{-0.7in}\Large {\bf The RISC-V Instruction Set Manual} \\
-  \large {\bf Volume I: Unprivileged ISA} \\
+\title{\vspace{-0.7in}\Large {\bf The RISC-V Instruction Set Manual\\ 
+\hl{RISC-V指令集手册} } \\
+  \large {\bf Volume I: Unprivileged ISA\\
+  \hl{卷一：非特权架构}} \\
   Document Version \specrev
   \vspace{-0.1in}}
 
@@ -24,10 +30,24 @@
   $^{1}$SiFive Inc., \\
   $^{2}$CS Division, EECS Department, University of California, Berkeley \\
   {\tt andrew@sifive.com, krste@berkeley.edu} \\
-  \today
+  \specmonthyear \\
+  \cm{翻译与评注：\commentor} \\
+  \cm{邮箱：liuxiaonan@eswin.com} \\
+  \cm{时间： \commentmonthyear}
 }
 \date{} 
 \maketitle
+
+文中的翻译部分会用\hl{亮黄色}标出，评注部分会用\cm{绿色}标出。
+为节约时间，笔者只翻译和评注自认为比较重要和难懂的部分，有不足之处，待日后继续完善。\\ 
+   
+\huge{翻译与评注工作记录} \\
+\normalsize
+   \\ 
+   2021年6月10日\\
+  开始翻译与评注第一卷中与特权架构关系比较大的部分。
+
+\newpage
 
 Contributors to all versions of the spec in
 alphabetical order (please contact editors to suggest
@@ -68,7 +88,7 @@ Andrew Waterman and Krste Asanovi\'{c}, RISC-V Foundation, \specmonthyear.
 
 \frontmatter
 
-\input{preface}
+%\input{preface}
 
 {\hypersetup{linktoc=all,hidelinks}
 \tableofcontents
@@ -76,35 +96,35 @@ Andrew Waterman and Krste Asanovi\'{c}, RISC-V Foundation, \specmonthyear.
 
 \mainmatter
 
-\input{intro}
-\input{rv32}
-\input{zifencei}
-\input{zihintpause}
-\input{rv32e}
-\input{rv64}
-\input{rv128}
-\input{m}
-\input{a}
+%\input{intro}
+%\input{rv32}
+%\input{zifencei}
+%\input{zihintpause}
+%\input{rv32e}
+%\input{rv64}
+%\input{rv128}
+%\input{m}
+%\input{a}
 \input{csr}
 \input{counters}
-\input{f}
-\input{d}
-\input{q}
+%\input{f}
+%\input{d}
+%\input{q}
 \input{rvwmo}
-\input{c}
-\input{b}
-\input{j}
-\input{p}
-\input{v}
-\input{zam}
-\input{ztso}
-\input{gmaps}
-\input{extensions}
-\input{naming}
-\input{history}
+%\input{c}
+%\input{b}
+%\input{j}
+%\input{p}
+%\input{v}
+%\input{zam}
+%\input{ztso}
+%\input{gmaps}
+%\input{extensions}
+%\input{naming}
+%\input{history}
 
 \appendix
-\input{memory}
+%\input{memory}
 
 \bibliographystyle{plain}
 \bibliography{riscv-spec}
