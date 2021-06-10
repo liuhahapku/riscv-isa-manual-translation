@@ -246,15 +246,31 @@ The ``E'' bit is read-only.  Unless {\tt misa} is hardwired to zero, the ``E''
 bit always reads as the complement of the ``I'' bit.  An implementation that
 supports both RV32E and RV32I can select RV32E by clearing the ``I'' bit.
 
+\hl{
+  "E"比特是只读的，除非{\tt misa}寄存器被硬布线为0，否则"E"比特总是"I比特的补码。
+  同时支持RV32E和RV32I的硬件实现可以通过清除"I"比特来选择RV32E。
+}
+
 If an ISA feature {\em x} depends on an ISA feature {\em y}, then attempting
 to enable feature {\em x} but disable feature {\em y} results in both features
 being disabled.  For example, setting ``F''=0 and ``D''=1 results in both
 ``F'' and ``D'' being cleared.
 
+\hl{
+  如果指令集的特性{\em x}依赖于特性{\em y}，那么试图使能特性{\em x}并关闭特性{\em y}将导致
+  两个特性都被关闭。例如，设置“F=0”且“D=1”将导致“F”和“D”都被清除。
+}
+
+
 An implementation may impose additional constraints on the collective setting
 of two or more {\tt misa} fields, in which case they function collectively as
 a single \warl\ field.  An attempt to write an unsupported combination causes
 those bits to be set to some supported combination.
+
+\hl{
+  硬件实现可以对两个或多个{\tt misa}字段的集合施加额外的约束，在这种情况下，它们共同作为一
+  个 WARL 字段发挥作用。尝试写入不支持的组合将导致这些位被设置为某些支持的组合。
+}
 
 Writing {\tt misa} may increase IALIGN, e.g., by disabling the ``C''
 extension.
@@ -262,17 +278,35 @@ If an instruction that would write {\tt misa} increases IALIGN, and
 the subsequent instruction's address is not IALIGN-bit aligned, the
 write to {\tt misa} is suppressed, leaving {\tt misa} unchanged.
 
+\hl{
+  写入{\tt misa}，例如关闭"C"扩展，可能会增加指令地址对齐约束。如果一个写入{\tt misa}
+  的指令会增加指令地址对齐约束，而且后续的指令地址不满足指令地址对齐约束，那么
+  写入{\tt misa}会被抑制，从而保持{\tt misa}不变。
+}
+
 When software enables an extension that was previously disabled, then all
 state uniquely associated with that extension is \unspecified, unless
 otherwise specified by that extension.
 
-\subsection{Machine Vendor ID Register {\tt mvendorid}}
+\hl{
+  当软件启用了之前被关闭的某个扩展，此时只与该扩展单独相关的状态是未指定的，
+  除非该扩展额外指定了。
+}
+
+\subsection{Machine Vendor ID Register {\tt mvendorid} ~\\ 
+\hl{机器制造商ID寄存器{\tt mvendorid}}}
 
 The {\tt mvendorid} CSR is a 32-bit read-only register providing
 the JEDEC manufacturer ID of the provider of the core.  This register
 must be readable in any implementation, but a value of 0 can be
 returned to indicate the field is not implemented or that this is a
 non-commercial implementation.
+
+\hl{
+  {\tt mvendorid} CSR是一个32比特的只读寄存器，提供了联合电子设备工程会议
+  的处理器核制造商ID。在所有的实现中，这个寄存器都必须是可读的，但是可以返回值
+  0来表示该字段没有实现，或者要么这是一个非商业实现。
+}
 
 \begin{figure*}[h!]
 {\footnotesize
@@ -316,7 +350,8 @@ manufacturer ID standard.  At time of writing, registering a
 manufacturer ID with JEDEC has a one-time cost of \$500.
 \end{commentary}
 
-\subsection{Machine Architecture ID Register {\tt marchid}}
+\subsection{Machine Architecture ID Register {\tt marchid} ~\\ 
+\hl{机器架构ID寄存器 {\tt marchid}}}
 
 The {\tt marchid} CSR is an MXLEN-bit read-only register encoding the
 base microarchitecture of the hart.  This register must be readable in
@@ -324,6 +359,12 @@ any implementation, but a value of 0 can be returned to indicate the
 field is not implemented.  The combination of {\tt mvendorid} and {\tt
   marchid} should uniquely identify the type of hart microarchitecture
 that is implemented.
+
+\hl{
+  {\tt marchid}寄存器是一个MXLEN位的只读寄存器，编码 hart 的基础微架构。这个寄存器在
+  任何实现中都必须是可读的，但是可以返回0值来表示该字段没有实现。{\tt mvendorid}和{\tt marchid}
+  的组合应该唯一地标识所实现的hart微架构的类型。
+}
 
 \begin{figure*}[h!]
 {\footnotesize
@@ -369,13 +410,19 @@ including by organization.  The {\tt misa} register also helps
 distinguish different variants of a design.
 \end{commentary}
 
-\subsection{Machine Implementation ID Register {\tt mimpid}}
+\subsection{Machine Implementation ID Register {\tt mimpid} ~\\ 
+\hl{机器实现ID寄存器 {\tt mimpid}}}
 
 The {\tt mimpid} CSR provides a unique encoding of the version of the
 processor implementation.  This register must be readable in any
 implementation, but a value of 0 can be returned to indicate that the
 field is not implemented.  The Implementation value should reflect the
 design of the RISC-V processor itself and not any surrounding system.
+
+\hl{
+  {\tt mimpid}寄存器提供了处理器实现版本的唯一编码。这个寄存器在任何实现中都必须是可读的，
+  但是可以返回值0来表示该字段没有实现。实现值应该反映RISC-V处理器本身的设计，而不是任何周围的系统。
+}
 
 \begin{figure*}[h!]
 {\footnotesize
@@ -403,7 +450,8 @@ most-significant nibble down) with subfields aligned on nibble
 boundaries to ease human readability.
 \end{commentary}
 
-\subsection{Hart ID Register {\tt mhartid}}
+\subsection{Hart ID Register {\tt mhartid} ~\\ 
+\hl{硬件线程ID寄存器}}
 
 The {\tt mhartid} CSR is an MXLEN-bit read-only register
 containing the integer ID of the hardware thread running the code.
@@ -411,6 +459,12 @@ This register must be readable in any implementation.  Hart IDs might
 not necessarily be numbered contiguously in a multiprocessor system,
 but at least one hart must have a hart ID of zero.  Hart IDs must be
 unique within the execution environment.
+
+\hl{
+  {\tt mhartid} 寄存器是一个 MXLEN 位的只读寄存器，包含正在运行代码的硬件线程的整数ID。
+  这个寄存器在任何实现中都必须是可读的。在多处理器系统中，Hart ID不一定是连续编号的，
+  但至少有一个Hart ID必须为零。Hart ID在执行环境中必须是唯一的。
+}
 
 \begin{figure*}[h!]
 {\footnotesize
@@ -437,6 +491,13 @@ zero.
 
 For efficiency, system implementers should aim to reduce the magnitude
 of the largest hart ID used in a system.
+\end{commentary}
+
+\begin{commentary}
+  \hl{
+    在某些情况下，我们必须确保存在一个hart来运行一些代码(例如重置)，因此要求一个hart
+    有一个已知的hart ID，即为0。为了提高效率，系统实现者应该致力于减少系统中使用的最大hart ID的大小。
+  }
 \end{commentary}
 
 \subsection{Machine Status Registers ({\tt mstatus} and {\tt mstatush})}
