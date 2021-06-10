@@ -1,9 +1,15 @@
-\chapter{``Zicsr'', Control and Status Register (CSR) Instructions, Version 2.0}
+\chapter{``Zicsr'', Control and Status Register (CSR) Instructions, Version 2.0 ~\\ 
+\hl{“Zicsr”,控制和状态寄存器指令，2.0版}}
 \label{csrinsts}
 
 RISC-V defines a separate address space of 4096 Control and Status
 registers associated with each hart.  This chapter defines the full
 set of CSR instructions that operate on these CSRs.
+
+\hl{
+  RISC-V为每个硬件线程定义了能容纳 4096 个控制和状态寄存器的独立的地址空间。
+  这一章定义了了一组完整的操作这些寄存器的CSR指令。
+}
 
 \begin{commentary}
   While CSRs are primarily used by the privileged architecture, there
@@ -16,12 +22,26 @@ set of CSR instructions that operate on these CSRs.
   separate chapter.
 \end{commentary}
 
-\section{CSR Instructions}
+\begin{commentary}
+  \hl{
+    虽然控制和状态寄存器主要用于特权架构，但在非特权代码中也用到了一些，比如计数器和计时器
+    以及一些用于浮点状态的寄存器。\newline
+    计数器和计时器不在被认为是标准基础指令集的必要部分，所以访问他们所需的控制和状态寄存器指令
+    已经从第~\ref{rv32}章移出到这个独立的章节。
+  }
+\end{commentary}
+
+\section{CSR Instructions ~\\ \hl{控制和状态寄存器指令}}
 
 All CSR instructions atomically read-modify-write a single CSR, whose
 CSR specifier is encoded in the 12-bit {\em csr} field of the
 instruction held in bits 31--20.  The immediate forms use a 5-bit
 zero-extended immediate encoded in the {\em rs1} field.
+
+\hl{
+  所有的CSR指令都原子性地读-修改-写单个的控制和状态寄存器，每个寄存器由指令的
+  31-20位的12个比特位{\em csr}编码和标识。立即数形式使用了在{\em rs1}字段中编码的5位零扩展的立即数。
+}
 
 \vspace{-0.2in}
 \begin{center}
@@ -57,6 +77,13 @@ CSR.  If {\em rd}={\tt x0}, then the instruction shall not read the CSR
 and shall not cause any of the side effects that might occur on a CSR
 read.
 
+\hl{
+  CSRRW（原子地读/写CSR）指令原子性地在控制和状态寄存器与整数寄存器之间交换值。CSRRW从CSR
+  中读取旧的值，然后把这个值零扩展到XLEN比特，然后写入整数寄存器{\em rd},同时{\em rs1}中的
+  初始值被写入到CSR。如果{\em rd}={\tt x0},那么这个指令不应该读CSR也不应该造成任何在CSR读取过程
+  中可能出现的副作用。
+}
+
 The CSRRS (Atomic Read and Set Bits in CSR) instruction reads the
 value of the CSR, zero-extends the value to XLEN bits, and writes it
 to integer register {\em rd}.  The initial value in integer register
@@ -65,6 +92,13 @@ set in the CSR.  Any bit that is high in {\em rs1} will cause the
 corresponding bit to be set in the CSR, if that CSR bit is writable.
 Other bits in the CSR are not explicitly written.
 
+\hl{
+  CSRRS（原子性地读和设置比特位）指令读取CSR的值，然后把这个值零扩展到XLEN比特，
+  然后写入整数寄存器{\em rd} 。同时{\em rs1}中的初始值被视作一个比特位掩码，指明了
+  CSR中将要被置位的比特位的位置。{\em rs1}中任何被置位的比特位都会导致CSR中相应的位置被
+  置位，如果这个CSR比特位是可写的。而CSR中的其他位不会被显式地写入。
+}
+
 The CSRRC (Atomic Read and Clear Bits in CSR) instruction reads the
 value of the CSR, zero-extends the value to XLEN bits, and writes it
 to integer register {\em rd}.  The initial value in integer register
@@ -72,6 +106,13 @@ to integer register {\em rd}.  The initial value in integer register
 cleared in the CSR.  Any bit that is high in {\em rs1} will cause the
 corresponding bit to be cleared in the CSR, if that CSR bit is writable.
 Other bits in the CSR are not explicitly written.
+
+\hl{
+  CSRRC（原子性地读和清除比特位）指令读取CSR的值，然后把这个值零扩展到XLEN比特，
+  然后写入整数寄存器{\em rd} 。同时{\em rs1}中的初始值被视作一个比特位掩码，指明了
+  CSR中将要被清除的比特位的位置。{\em rs1}中任何被置位的比特位都会导致CSR中相应的位置被
+  清除，如果这个CSR比特位是可写的。而CSR中的其他位不会被显式地写入。
+}
 
 For both CSRRS and CSRRC, if {\em rs1}={\tt x0}, then the instruction
 will not write to the CSR at all, and so shall not cause any of the
@@ -85,6 +126,14 @@ value back to the CSR and will cause any attendant side effects.  A
 CSRRW with {\em rs1}={\tt x0} will attempt to write zero to the
 destination CSR.
 
+\hl{
+  对于CSRRS 和 CSRRC， 如果 {\em rs1}={\tt x0}，那么这个指令不会对CSR进行写入，
+  也不应该造成任何在CSR读取过程中可能出现的副作用，也不会在访问只读CSRs的时候引起非法指令异常。
+  不管{\em rs1}和{\em rd}字段如何，CSRRS和CSRRC都总是读取取址的CSR，并产生相应的读取副作用。
+  如果{\em rs1}指定了一个持有零值的寄存器，但它不是{\tt x0}，该指令仍将尝试将未修改的0值写回CSR，
+  并将产生相应的任何附带的副作用。具有{\em rs1}={\tt x0}的CSRRW将尝试向目标CSR写入0。
+}
+
 The CSRRWI, CSRRSI, and CSRRCI variants are similar to CSRRW, CSRRS,
 and CSRRC respectively, except they update the CSR using an XLEN-bit
 value obtained by zero-extending a 5-bit unsigned immediate (uimm[4:0]) field
@@ -97,6 +146,16 @@ For CSRRWI, if {\em rd}={\tt x0}, then the instruction shall not read the
 CSR and shall not cause any of the side effects that might occur on a
 CSR read.  Both CSRRSI and CSRRCI will always read the CSR and cause
 any read side effects regardless of {\em rd} and {\em rs1} fields.
+
+\hl{
+  CSRRWI, CSRRSI 和 CSRRCI 变体与CSRRW, CSRRS,
+  and CSRRC 是相应类似的，除了它们通过把{\em rs1}字段作为5比特的立即数(uimm[4:0])
+  扩展到XLEN比特，并用于更新CSR。对CSRRSI 和 CSRRCI ，如果uimm[4:0]字段是0，
+  那么这些指令不会对CSR进行写入,也不应该造成任何在CSR读取过程中可能出现的副作用，
+  也不会在访问只读CSRs的时候引起非法指令异常。
+  对CSRRWI，如果{\em rd}={\tt x0}，那么该指令不应该读取CSR，也不应该造成任何在读取时
+  可能出现的副作用。CSRRSI 和 CSRRCI 总是会读取CSR并产生读的副作用，无论{\em rd} 和 {\em rs1}字段是什么。
+}
 
 \begin{table}
   \centering
@@ -126,7 +185,8 @@ any read side effects regardless of {\em rd} and {\em rs1} fields.
     \hline
   \end{tabular}
   \caption{Conditions determining whether a CSR instruction reads or writes
-    the specified CSR.}
+    the specified CSR. ~\\
+    \hl{决定CSR指令是否读或写特定CSR的条件}}
   \label{tab:csrsideeffects}
 \end{table}
 
@@ -178,18 +238,36 @@ instruction writes such a CSR, the write is done instead of the
 increment.  In particular, a value written to {\tt instret} by one
 instruction will be the value read by the following instruction.
 
+\hl{
+  一些控制和状态寄存器，比如指令退休计数器{\tt instret}，在指令执行后作为副作用可能会被修改。
+  在这种情况下，如果如果一个CSR访问指令读取了这种CSR，那么读取的是执行这条指令之前的值。
+  如果CSR访问指令写入了这种CSR，那么会执行写入而不是增加操作。特别地，通过一条指令写入的值
+  在下一条指令读取时就会读出这个值。
+}
+
 The assembler pseudoinstruction to read a CSR, CSRR {\em rd, csr}, is
 encoded as CSRRS {\em rd, csr, x0}.  The assembler pseudoinstruction
 to write a CSR, CSRW {\em csr, rs1}, is encoded as CSRRW {\em x0, csr,
   rs1}, while CSRWI {\em csr, uimm}, is encoded as CSRRWI {\em x0,
   csr, uimm}.
 
+\hl{
+  读取CSR的汇编伪代码CSRR {\em rd, csr}被编码成CSRRS {\em rd, csr, x0}。
+  写入CSR的汇编伪代码CSRW {\em csr, rs1}被编码成CSRRW {\em x0, csr, rs1}，
+  另外CSRWI {\em csr, uimm}, 被编码成 CSRRWI {\em x0, csr, uimm}。
+}
+
 Further assembler pseudoinstructions are defined to set and clear
 bits in the CSR when the old value is not required: CSRS/CSRC {\em
   csr, rs1}; CSRSI/CSRCI {\em csr, uimm}.
 
+\hl{
+  更多的汇编伪代码被定义用于在旧值不需要的情况下，设置和清除CSR的比特位：CSRS/CSRC {\em
+  csr, rs1}; CSRSI/CSRCI {\em csr, uimm}。
+}
 
-\subsection*{CSR Access Ordering}
+
+\subsection*{CSR Access Ordering ~\\ \hl{CSR访问顺序}}
 
 Each RISC-V hart normally observes its own CSR accesses, including its
 implicit CSR accesses, as performed in program order.
@@ -203,6 +281,15 @@ CSR state before the execution of the instruction, while an
 explict CSR write suppresses and overrides any implicit writes or
 modifications to the same CSR by the same instruction.
 
+\hl{
+  正常情况下，每个RISC-V 硬件线程观察它自己的按程序顺序执行的CSR访问，包括隐式CSR访问。
+  特别是，除非另有说明，否则对CSR访问的执行，将发生在任何按程序顺序在它之前，而且指令行为受到CSR状态影响的所有指令之后，
+  且发生在任何按程序顺序在它之后，而且指令行为受到CSR状态影响的所有指令之前。}\cm{
+    （即受CSR状态影响的指令应该严格按程序中的顺序执行。）
+  }\hl{
+  此外，显式CSR读取将返回CSR在执行指令前的状态，而显式的CSR写将抑制并覆盖同一条指令的任何隐式写或对该CSR其他修改。
+}
+
 Likewise, any side effects from an explicit CSR access are normally
 observed to occur synchronously in program order.
 Unless specified otherwise, the full consequences of any such side
@@ -210,6 +297,12 @@ effects are observable by the very next instruction, and no consequences
 may be observed out-of-order by preceding instructions.
 (Note the distinction made earlier between side effects and indirect
 effects of CSR writes.)
+
+\hl{
+  同样，显式CSR访问的任何副作用通常都是按照程序顺序同步发生的。除非另有说明，
+  任何此类副作用的全部后果都可以在下一个指令中观察到，而任何后果都不能被前一个
+  指令打乱顺序观察到。(请注意前面提到的CSR写的副作用和间接影响之间的区别。)
+}
 
 For the RVWMO memory consistency model (Chapter~\ref{ch:memorymodel}),
 CSR accesses are weakly ordered by default,
@@ -225,12 +318,27 @@ between the relevant accesses. For the purposes of the FENCE instruction, CSR
 read accesses are classified as device input (I), and CSR write accesses are
 classified as device output (O).
 
+\hl{
+  对于RVWMO内存一致性模型(第~\ref{ch:memorymodel}章)，CSR访问在默认情况下是弱顺序的，
+  所以其他硬件或设备可能会观察到CSR访问的顺序不同于程序顺序。此外，与显式内存访问相比，
+  CSR访问是不按顺序的，除非CSR访问修改了执行显式内存访问的指令的执行行为
+  或除非CSR访问和一个显式的内存访问命令的语法定义的内存模型的依赖性或是按照内存模型定义的
+  语法依赖或本手册第II卷中 memory-ordered PMAs部分定义的顺序要求排序的。
+  为了在所有其他情况下强制排序，软件应该在相关访问之间执行一个FENCE指令。对于FENCE指令的目的，
+  CSR读访问被分类为设备输入(I)， CSR写访问被分类为设备输出(O)。
+}
+
 \begin{commentary}
 Informally, the CSR space acts as a weakly ordered memory-mapped I/O region, as
 defined by the Memory-Ordering PMAs section in Volume II of this manual. As a
 result, the order of CSR accesses with respect to all other accesses is
 constrained by the same mechanisms that constrain the order of memory-mapped
 I/O accesses to such a region.
+
+\hl{
+  非正式地，CSR空间充当一个弱有序的内存映射I/O区域，如本手册第2卷中的 memory-ordered PMAs部
+  分所定义的那样。因此，csr访问的顺序受到了同样的机制的限制，这种机制也限制了对该区域的内存映射I/O访问的顺序。
+}
 
 These CSR-ordering constraints are imposed primarily to support ordering main
 memory and memory-mapped I/O accesses with respect to reads of the {\tt time}
@@ -241,6 +349,13 @@ to other harts or devices.  Thus, accesses to CSRs other than the
 aforementioned three can be freely reordered in the global memory order
 with respect to FENCE instructions
 without violating this specification.
+
+\hl{
+  CSR顺序约束主要是为了支持对主存和内存映射I/O的访问，以及对{\tt time}CSR的读取。除了
+  {\tt time}, {\tt cycle}和 {\tt mcycle} CSRs，对目前在在手册卷一和卷二中中定义的
+  其他CSRs对于其他硬件线程和设备是不可直接访问的，因此不会因为可见性造成副作用。因此对上述
+  三者以外的CSR的访问可以根据FENCE指令对全局内存顺序自由地重新排序，而不违反此规范。
+}
 \end{commentary}
 
 The hardware platform may define that accesses to certain CSRs are
@@ -249,8 +364,17 @@ of this manual. Accesses to strongly ordered CSRs have stronger ordering
 constraints with respect to accesses to both weakly ordered CSRs and accesses
 to memory-mapped I/O regions.
 
+\hl{
+  硬件平台可以定义对某些CSR的访问是强顺序的，如本手册第二卷的 memory-ordered PMAs部分所定义的。
+  对强有序CSR的访问与对弱有序CSR和内存映射I/O区域的访问相比，有更强的排序约束。
+}
+
 \begin{commentary}
 The rules for the reordering of CSR accesses in the global memory order
 should probably be moved to Chapter~\ref{ch:memorymodel} concerning the
 RVWMO memory consistency model.
+
+\hl{
+  描述在全局内存顺序中重新排序CSR访问的规则可能应该移到讨论RVWMO内存一致性模型的~\ref{ch:memorymodel}章。
+}
 \end{commentary}
